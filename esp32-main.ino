@@ -2,25 +2,26 @@
 #include "auto.h"
 #include "secrets.h"
 #include "Relay.h"
-// #include "RelayModule.h"
-
-int relay_index = 0; // Index of relay in relay[]
 
 Relay relays[4] = {Relay(33, true, false), Relay(25, true, false), Relay(26, true, false), Relay(27, true, false)};
 WiFiClientSecure client;
 UniversalTelegramBot bot(BOTtoken, client);
-// Relay relaytest(25, true, false);
+
+// Flags
+int auto_mode = 1;
 
 void setup()
 {
     Serial.begin(115200);
+    // Time config
     configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
 
+    // Setup relays
     for (int i = 0; i <= 3; i++)
     {
         relays[i].begin();
     }
-    // pinMode(25, OUTPUT);
+    // Setup handleAuto()
     setupAuto();
     // Connect to Wi-Fi
     WiFi.mode(WIFI_STA);
@@ -45,7 +46,7 @@ void loop()
 
         while (numNewMessages)
         {
-            handleNewMessages(&bot, numNewMessages, &auto_mode, &relay_index, relays);
+            handleNewMessages(&bot, numNewMessages, &auto_mode, relays);
             numNewMessages = bot.getUpdates(bot.last_message_received + 1);
         }
         lastTimeBotRan = millis();
@@ -54,11 +55,4 @@ void loop()
     {
         handleAuto(&bot, relays);
     }
-
-    // relaytest.turnOn();
-    // Serial.println("ON");
-    // delay(1000);
-    // relaytest.turnOff();
-    // Serial.println("OFF");
-    // delay(1000);
 }

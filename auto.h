@@ -9,12 +9,6 @@
 #include "wifi-sniffer.h"
 #include "Relay.h"
 
-// LAN scanner
-#define PING_LIMIT 5
-#define LED_PIN 23
-
-bool prev_showpeople = false;
-
 // Time
 const char *ntpServer = "pool.ntp.org";
 const long gmtOffset_sec = 7 * 3600;
@@ -22,7 +16,6 @@ const int daylightOffset_sec = 0;
 struct tm timeinfo;
 
 // Flags
-int auto_mode = 1;
 int light_mode = 0;
 int prev_light_mode = -1;
 
@@ -44,8 +37,7 @@ void handleAuto(UniversalTelegramBot *bot, Relay *relays)
     updatetime();
     purge();
     curChannel++;
-    if (showpeople() != prev_showpeople && showpeople())
-    // My own things
+    if (showpeople()) // If my phone is connected to network
     {
         if (!getLocalTime(&timeinfo))
         {
