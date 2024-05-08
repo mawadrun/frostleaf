@@ -52,7 +52,7 @@ void loop()
     }
     if (auto_mode == 1)
     {
-        handleAuto(relays);
+        handleAuto(&bot, relays);
     }
 
     // relaytest.turnOn();

@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <ESP32Ping.h>
+#include <UniversalTelegramBot.h>
 #include <string>
 #include <time.h>
 #include "wifi-sniffer.h"
@@ -30,7 +31,7 @@ void setupAuto()
     setupSniffer();
 }
 
-void handleAuto(Relay *relays)
+void handleAuto(UniversalTelegramBot *bot, Relay *relays)
 {
     // From wifi-sniffer.h
     Serial.println("Changed channel:" + String(curChannel));
@@ -52,23 +53,33 @@ void handleAuto(Relay *relays)
         }
         else
         {
+            Serial.print("Current time: ");
+            Serial.print(timeinfo.tm_hour);
+            Serial.print(":");
+            Serial.print(timeinfo.tm_min);
+            Serial.print(":");
+            Serial.println(timeinfo.tm_sec);
             if (timeinfo.tm_hour >= 5 && timeinfo.tm_hour < 6)
             {
+                Serial.println("Mode 1");
                 relays[1].turnOn();
                 relays[2].turnOff();
             }
             else if (timeinfo.tm_hour >= 6 && timeinfo.tm_hour < 19)
             {
+                Serial.println("Mode 2");
                 relays[1].turnOff();
                 relays[2].turnOn();
             }
             else if (timeinfo.tm_hour >= 19 && timeinfo.tm_hour < 23)
             {
+                Serial.println("Mode 3");
                 relays[1].turnOn();
                 relays[2].turnOff();
             }
             else
             {
+                Serial.println("Mode 4");
                 relays[1].turnOff();
                 relays[2].turnOff();
             }
@@ -76,6 +87,7 @@ void handleAuto(Relay *relays)
     }
     else
     {
+        Serial.println("Mode 0");
         relays[1].turnOff();
         relays[2].turnOff();
     }
