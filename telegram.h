@@ -8,8 +8,8 @@
 #include "secrets.h"
 #include "Relay.h"
 
-#define RELAY_SELECT_MENU "[[\"REL 1 - None\", \"REL 2 - Warm light\"],[\"REL 3 - Cold light\", \"REL 4 - Rice cooker\"]]"
-#define RELAY_OPERATION_MENU "[[\"ON\", \"OFF\"],[\"Status\"]]"
+#define RELAY_SELECT_MENU "[[\"REL 1 - None 🚫\", \"REL 2 - Warm light 🟨\"],[\"REL 3 - Cold light 🟦\", \"REL 4 - Rice cooker 🌾🔥\"]]"
+#define RELAY_OPERATION_MENU "[[\"🟦 ON\", \"🟥 OFF\"]]"
 
 // Checks for new messages every 1 second.
 int botRequestDelay = 100;
@@ -79,6 +79,19 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
             }
         }
 
+        if (text == "/status")
+        {
+            String status = "Relay statuses: \n\nREL 1 - ";
+            status += relays[0].getState() ? "🟦 ON" : "🟥 OFF";
+            status += "\nREL 2 - ";
+            status += relays[1].getState() ? "🟦 ON" : "🟥 OFF";
+            status += "\nREL 3 - ";
+            status += relays[2].getState() ? "🟦 ON" : "🟥 OFF";
+            status += "\nREL 4 - ";
+            status += relays[3].getState() ? "🟦 ON" : "🟥 OFF";
+            (*bot).sendMessage(chat_id, status, "");
+        }
+
         if (text.substring(0, 3) == "REL")
         {
             if (*auto_mode == 1)
@@ -96,7 +109,7 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
             }
         }
 
-        if (text == "ON")
+        if (text == "🟦 ON")
         {
             (*bot).sendMessage(chat_id, "Relay state set to ON", "");
             Serial.print("Relay ");
@@ -107,27 +120,13 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
             (*bot).sendMessageWithReplyKeyboard(chat_id, "Select Relay", "", keyboardJson, true);
         }
 
-        if (text == "OFF")
+        if (text == "🟥 OFF")
         {
             (*bot).sendMessage(chat_id, "Relay state set to OFF", "");
             Serial.print("Relay ");
             Serial.print(relay_index + 1);
             Serial.println(" set to OFF.");
             relays[relay_index].turnOff();
-            String keyboardJson = RELAY_SELECT_MENU;
-            (*bot).sendMessageWithReplyKeyboard(chat_id, "Select Relay", "", keyboardJson, true);
-        }
-
-        if (text == "Status")
-        {
-            if (!relays[relay_index].getState())
-            {
-                (*bot).sendMessage(chat_id, "Relay is OFF", "");
-            }
-            else
-            {
-                (*bot).sendMessage(chat_id, "Relay is ON", "");
-            }
             String keyboardJson = RELAY_SELECT_MENU;
             (*bot).sendMessageWithReplyKeyboard(chat_id, "Select Relay", "", keyboardJson, true);
         }

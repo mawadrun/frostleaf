@@ -36,6 +36,7 @@ void setup()
     }
     // Print ESP32 Local IP Address
     Serial.println(WiFi.localIP());
+    bot.sendMessage(CHAT_ID, "Hello, I just woke up (●'◡'●)", "");
 }
 
 void loop()
