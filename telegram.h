@@ -6,6 +6,7 @@
 #include <UniversalTelegramBot.h> // Universal Telegram Bot Library written by Brian Lough: https://github.com/witnessmenow/Universal-Arduino-Telegram-Bot
 #include <ArduinoJson.h>          // Initialize Telegram BOT
 #include "secrets.h"
+#include "Relay.h"
 
 #define RELAY_SELECT_MENU "[[\"REL 1 - None\", \"REL 2 - Warm light\"],[\"REL 3 - Cold light\", \"REL 4 - Rice cooker\"]]"
 #define RELAY_OPERATION_MENU "[[\"ON\", \"OFF\"],[\"Status\"]]"
@@ -18,7 +19,7 @@ int botRequestDelay = 100;
 unsigned long lastTimeBotRan;
 
 // Handle what happens when you receive new messages
-void handleNewMessages(int numNewMessages, int *auto_mode, int *operand_relay, int *relay_index, bool relay_state[4], const int relay[4])
+void handleNewMessages(int numNewMessages, int *auto_mode, int *operand_relay, int *relay_index, Relay *relays)
 {
     // Serial.print("Received: ");
     // Serial.println(String(numNewMessages));
@@ -90,7 +91,6 @@ void handleNewMessages(int numNewMessages, int *auto_mode, int *operand_relay, i
             {
                 Serial.println("received RELAY");
                 *relay_index = (int)(text[4]) - 48 - 1;
-                *operand_relay = relay[*relay_index];
                 Serial.print("Operating on relay ");
                 Serial.println(*relay_index + 1);
                 String keyboardJson = RELAY_OPERATION_MENU;
@@ -104,8 +104,7 @@ void handleNewMessages(int numNewMessages, int *auto_mode, int *operand_relay, i
             Serial.print("Relay ");
             Serial.print(*relay_index + 1);
             Serial.println(" set to ON.");
-            relay_state[*relay_index] = LOW;
-            digitalWrite(*operand_relay, relay_state[*relay_index]);
+            relays[*relay_index].turnOn();
             String keyboardJson = RELAY_SELECT_MENU;
             bot.sendMessageWithReplyKeyboard(chat_id, "Select Relay", "", keyboardJson, true);
         }
@@ -116,8 +115,7 @@ void handleNewMessages(int numNewMessages, int *auto_mode, int *operand_relay, i
             Serial.print("Relay ");
             Serial.print(*relay_index + 1);
             Serial.println(" set to OFF.");
-            relay_state[*relay_index] = HIGH;
-            digitalWrite(*operand_relay, relay_state[*relay_index]);
+            relays[*relay_index].turnOff();
             String keyboardJson = RELAY_SELECT_MENU;
             bot.sendMessageWithReplyKeyboard(chat_id, "Select Relay", "", keyboardJson, true);
         }

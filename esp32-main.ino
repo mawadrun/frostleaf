@@ -6,9 +6,6 @@
 
 int operand_relay = 0; // Pin number from relay[]
 int relay_index = 0;   // Index of relay in relay[]
-bool relay_state[4] = {HIGH, HIGH, HIGH, HIGH};
-
-const int relay[4] = {33, 25, 26, 27};
 
 Relay relays[4] = {Relay(33, true, false), Relay(25, true, false), Relay(26, true, false), Relay(27, true, false)};
 
@@ -19,8 +16,7 @@ void setup()
 
     for (int i = 0; i <= 3; i++)
     {
-        pinMode(relay[i], OUTPUT);
-        digitalWrite(relay[i], HIGH);
+        relays[i].begin();
     }
     setupAuto();
     // Connect to Wi-Fi
@@ -46,13 +42,13 @@ void loop()
 
         while (numNewMessages)
         {
-            handleNewMessages(numNewMessages, &auto_mode, &operand_relay, &relay_index, relay_state, relay);
+            handleNewMessages(numNewMessages, &auto_mode, &operand_relay, &relay_index, relays);
             numNewMessages = bot.getUpdates(bot.last_message_received + 1);
         }
         lastTimeBotRan = millis();
     }
     if (auto_mode == 1)
     {
-        handleAuto(relay);
+        handleAuto(relays);
     }
 }

@@ -14,6 +14,7 @@ public:
     bool getState();
     void turnOn();
     void turnOff();
+    void begin();
 };
 
 #endif

@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include "Relay.h"
 
 Relay::Relay() {}
@@ -37,6 +38,20 @@ void Relay::turnOn()
 void Relay::turnOff()
 {
     bool val;
+    if (activeLow)
+    {
+        val = normallyClosed ? 0 : 1;
+    }
+    else
+    {
+        val = normallyClosed ? 1 : 0;
+    }
+    digitalWrite(pin, val);
+}
+void Relay::begin()
+{
+    bool val;
+    pinMode(pin, OUTPUT);
     if (activeLow)
     {
         val = normallyClosed ? 0 : 1;

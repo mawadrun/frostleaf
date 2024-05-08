@@ -6,6 +6,7 @@
 #include <string>
 #include <time.h>
 #include "wifi-sniffer.h"
+#include "Relay.h"
 
 // LAN scanner
 #define PING_LIMIT 5
@@ -29,7 +30,7 @@ void setupAuto()
     setupSniffer();
 }
 
-void handleAuto(const int relay[4])
+void handleAuto(Relay *relays)
 {
     // From wifi-sniffer.h
     Serial.println("Changed channel:" + String(curChannel));
@@ -48,39 +49,35 @@ void handleAuto(const int relay[4])
         if (!getLocalTime(&timeinfo))
         {
             Serial.println("Failed to obtain time");
-            digitalWrite(relay[1], LOW);
-            digitalWrite(relay[2], HIGH);
         }
         else
         {
             if (timeinfo.tm_hour >= 5 && timeinfo.tm_hour < 6)
             {
-                digitalWrite(relay[1], LOW);
-                digitalWrite(relay[2], HIGH);
+                relays[1].turnOn();
+                relays[2].turnOff();
             }
             else if (timeinfo.tm_hour >= 6 && timeinfo.tm_hour < 19)
             {
-                digitalWrite(relay[1], HIGH);
-                digitalWrite(relay[2], LOW);
+                relays[1].turnOff();
+                relays[2].turnOn();
             }
             else if (timeinfo.tm_hour >= 19 && timeinfo.tm_hour < 23)
             {
-                digitalWrite(relay[1], LOW);
-                digitalWrite(relay[2], HIGH);
+                relays[1].turnOn();
+                relays[2].turnOff();
             }
             else
             {
-                digitalWrite(relay[1], HIGH);
-                digitalWrite(relay[2], HIGH);
+                relays[1].turnOff();
+                relays[2].turnOff();
             }
         }
     }
     else
     {
-        for (int i = 0; i <= 3; i++)
-        {
-            digitalWrite(relay[i], HIGH);
-        }
+        relays[1].turnOff();
+        relays[2].turnOff();
     }
 }
 
