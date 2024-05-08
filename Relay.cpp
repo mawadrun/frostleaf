@@ -4,9 +4,9 @@
 Relay::Relay() {}
 Relay::Relay(int pin, bool isActiveLow = false, bool isNormallyClosed = false)
 {
-    pin = pin;
-    activeLow = isActiveLow;
-    normallyClosed = isNormallyClosed;
+    this->pin = pin;
+    this->activeLow = isActiveLow;
+    this->normallyClosed = isNormallyClosed;
 }
 bool Relay::getState()
 {

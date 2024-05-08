@@ -9,6 +9,8 @@ int relay_index = 0;   // Index of relay in relay[]
 
 Relay relays[4] = {Relay(33, true, false), Relay(25, true, false), Relay(26, true, false), Relay(27, true, false)};
 
+// Relay relaytest(25, true, false);
+
 void setup()
 {
     Serial.begin(115200);
@@ -18,6 +20,7 @@ void setup()
     {
         relays[i].begin();
     }
+    // pinMode(25, OUTPUT);
     setupAuto();
     // Connect to Wi-Fi
     WiFi.mode(WIFI_STA);
@@ -51,4 +54,11 @@ void loop()
     {
         handleAuto(relays);
     }
+
+    // relaytest.turnOn();
+    // Serial.println("ON");
+    // delay(1000);
+    // relaytest.turnOff();
+    // Serial.println("OFF");
+    // delay(1000);
 }

@@ -122,7 +122,7 @@ void handleNewMessages(int numNewMessages, int *auto_mode, int *operand_relay, i
 
         if (text == "Status")
         {
-            if (digitalRead(*operand_relay))
+            if (!relays[*relay_index].getState())
             {
                 bot.sendMessage(chat_id, "Relay is OFF", "");
             }
