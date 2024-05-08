@@ -11,15 +11,12 @@
 #define RELAY_SELECT_MENU "[[\"REL 1 - None\", \"REL 2 - Warm light\"],[\"REL 3 - Cold light\", \"REL 4 - Rice cooker\"]]"
 #define RELAY_OPERATION_MENU "[[\"ON\", \"OFF\"],[\"Status\"]]"
 
-WiFiClientSecure client;
-UniversalTelegramBot bot(BOTtoken, client);
-
 // Checks for new messages every 1 second.
 int botRequestDelay = 100;
 unsigned long lastTimeBotRan;
 
 // Handle what happens when you receive new messages
-void handleNewMessages(int numNewMessages, int *auto_mode, int *operand_relay, int *relay_index, Relay *relays)
+void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_mode, int *relay_index, Relay *relays)
 {
     // Serial.print("Received: ");
     // Serial.println(String(numNewMessages));
@@ -27,44 +24,44 @@ void handleNewMessages(int numNewMessages, int *auto_mode, int *operand_relay, i
     for (int i = 0; i < numNewMessages; i++)
     {
         // Chat id of the requester
-        String chat_id = String(bot.messages[i].chat_id);
+        String chat_id = String((*bot).messages[i].chat_id);
         if (chat_id != CHAT_ID)
         {
-            bot.sendMessage(chat_id, "Unauthorized user", "");
+            (*bot).sendMessage(chat_id, "Unauthorized user", "");
             continue;
         }
 
         // Print the received message
-        String text = bot.messages[i].text;
+        String text = (*bot).messages[i].text;
         Serial.print("Received: \"");
         Serial.print(text);
         Serial.println("\"");
 
-        String from_name = bot.messages[i].from_name;
+        String from_name = (*bot).messages[i].from_name;
 
         if (text == "/start")
         {
             String welcome = "Welcome, " + from_name + ".\n";
             welcome += "Use /options to start.\n\n";
-            bot.sendMessage(chat_id, welcome, "");
+            (*bot).sendMessage(chat_id, welcome, "");
         }
 
         if (text == "/options")
         {
             String keyboardJson = RELAY_SELECT_MENU;
-            bot.sendMessageWithReplyKeyboard(chat_id, "Select Relay", "", keyboardJson, true);
+            (*bot).sendMessageWithReplyKeyboard(chat_id, "Select Relay", "", keyboardJson, true);
         }
 
         if (text == "/auto")
         {
             if (*auto_mode == 1)
             {
-                bot.sendMessage(chat_id, "Auto mode is already on! (. ❛ ᴗ ❛.)", "");
+                (*bot).sendMessage(chat_id, "Auto mode is already on! (. ❛ ᴗ ❛.)", "");
             }
             else
             {
                 *auto_mode = 1;
-                bot.sendMessage(chat_id, "Auto mode turned on! ☆*: .｡. o(≧▽≦)o .｡.:*☆", "");
+                (*bot).sendMessage(chat_id, "Auto mode turned on! ☆*: .｡. o(≧▽≦)o .｡.:*☆", "");
             }
         }
 
@@ -72,12 +69,12 @@ void handleNewMessages(int numNewMessages, int *auto_mode, int *operand_relay, i
         {
             if (*auto_mode == 0)
             {
-                bot.sendMessage(chat_id, "You're in control! \(￣︶￣*\))", "");
+                (*bot).sendMessage(chat_id, "You're in control! \(￣︶￣*\))", "");
             }
             else
             {
                 *auto_mode = 0;
-                bot.sendMessage(chat_id, "Turned off auto mode. We're now in manual! (～￣▽￣)～", "");
+                (*bot).sendMessage(chat_id, "Turned off auto mode. We're now in manual! (～￣▽￣)～", "");
             }
         }
 
@@ -85,7 +82,7 @@ void handleNewMessages(int numNewMessages, int *auto_mode, int *operand_relay, i
         {
             if (*auto_mode == 1)
             {
-                bot.sendMessage(chat_id, "Can't do that! Turn off auto mode first using /manual", "");
+                (*bot).sendMessage(chat_id, "Can't do that! Turn off auto mode first using /manual", "");
             }
             else
             {
@@ -94,44 +91,44 @@ void handleNewMessages(int numNewMessages, int *auto_mode, int *operand_relay, i
                 Serial.print("Operating on relay ");
                 Serial.println(*relay_index + 1);
                 String keyboardJson = RELAY_OPERATION_MENU;
-                bot.sendMessageWithReplyKeyboard(chat_id, "Select operation", "", keyboardJson, true);
+                (*bot).sendMessageWithReplyKeyboard(chat_id, "Select operation", "", keyboardJson, true);
             }
         }
 
         if (text == "ON")
         {
-            bot.sendMessage(chat_id, "Relay state set to ON", "");
+            (*bot).sendMessage(chat_id, "Relay state set to ON", "");
             Serial.print("Relay ");
             Serial.print(*relay_index + 1);
             Serial.println(" set to ON.");
             relays[*relay_index].turnOn();
             String keyboardJson = RELAY_SELECT_MENU;
-            bot.sendMessageWithReplyKeyboard(chat_id, "Select Relay", "", keyboardJson, true);
+            (*bot).sendMessageWithReplyKeyboard(chat_id, "Select Relay", "", keyboardJson, true);
         }
 
         if (text == "OFF")
         {
-            bot.sendMessage(chat_id, "Relay state set to OFF", "");
+            (*bot).sendMessage(chat_id, "Relay state set to OFF", "");
             Serial.print("Relay ");
             Serial.print(*relay_index + 1);
             Serial.println(" set to OFF.");
             relays[*relay_index].turnOff();
             String keyboardJson = RELAY_SELECT_MENU;
-            bot.sendMessageWithReplyKeyboard(chat_id, "Select Relay", "", keyboardJson, true);
+            (*bot).sendMessageWithReplyKeyboard(chat_id, "Select Relay", "", keyboardJson, true);
         }
 
         if (text == "Status")
         {
             if (!relays[*relay_index].getState())
             {
-                bot.sendMessage(chat_id, "Relay is OFF", "");
+                (*bot).sendMessage(chat_id, "Relay is OFF", "");
             }
             else
             {
-                bot.sendMessage(chat_id, "Relay is ON", "");
+                (*bot).sendMessage(chat_id, "Relay is ON", "");
             }
             String keyboardJson = RELAY_SELECT_MENU;
-            bot.sendMessageWithReplyKeyboard(chat_id, "Select Relay", "", keyboardJson, true);
+            (*bot).sendMessageWithReplyKeyboard(chat_id, "Select Relay", "", keyboardJson, true);
         }
     }
 }

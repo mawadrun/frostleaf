@@ -4,11 +4,11 @@
 #include "Relay.h"
 // #include "RelayModule.h"
 
-int operand_relay = 0; // Pin number from relay[]
-int relay_index = 0;   // Index of relay in relay[]
+int relay_index = 0; // Index of relay in relay[]
 
 Relay relays[4] = {Relay(33, true, false), Relay(25, true, false), Relay(26, true, false), Relay(27, true, false)};
-
+WiFiClientSecure client;
+UniversalTelegramBot bot(BOTtoken, client);
 // Relay relaytest(25, true, false);
 
 void setup()
@@ -45,7 +45,7 @@ void loop()
 
         while (numNewMessages)
         {
-            handleNewMessages(numNewMessages, &auto_mode, &operand_relay, &relay_index, relays);
+            handleNewMessages(&bot, numNewMessages, &auto_mode, &relay_index, relays);
             numNewMessages = bot.getUpdates(bot.last_message_received + 1);
         }
         lastTimeBotRan = millis();
