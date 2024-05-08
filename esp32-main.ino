@@ -1,6 +1,7 @@
 #include "telegram.h"
 #include "auto.h"
 #include "secrets.h"
+#include "Relay.h"
 // #include "RelayModule.h"
 
 int operand_relay = 0; // Pin number from relay[]
@@ -8,7 +9,8 @@ int relay_index = 0;   // Index of relay in relay[]
 bool relay_state[4] = {HIGH, HIGH, HIGH, HIGH};
 
 const int relay[4] = {33, 25, 26, 27};
-// Credentials
+
+Relay relays[4] = {Relay(33, true, false), Relay(25, true, false), Relay(26, true, false), Relay(27, true, false)};
 
 void setup()
 {
