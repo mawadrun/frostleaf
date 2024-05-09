@@ -6,7 +6,7 @@
 String maclist[64][3];
 int listcount = 0;
 
-String defaultTTL = "10"; // Maximum time (Apx seconds) elapsed before device is consirded offline
+String defaultTTL = "30"; // Maximum time (Apx seconds) elapsed before device is consirded offline
 
 const wifi_promiscuous_filter_t filt = { // Idk what this does
     .filter_mask = WIFI_PROMIS_FILTER_MASK_MGMT | WIFI_PROMIS_FILTER_MASK_DATA};

@@ -2,7 +2,6 @@
 #define AUTO
 
 #include <Arduino.h>
-#include <ESP32Ping.h>
 #include <UniversalTelegramBot.h>
 #include <string>
 #include <time.h>
@@ -15,9 +14,8 @@ const long gmtOffset_sec = 7 * 3600;
 const int daylightOffset_sec = 0;
 struct tm timeinfo;
 
-// Flags
-int light_mode = 0;
-int prev_light_mode = -1;
+String profile = "";
+String prev_profile = profile;
 
 void setupAuto()
 {
@@ -37,7 +35,9 @@ void handleAuto(UniversalTelegramBot *bot, Relay *relays)
     updatetime();
     purge();
     curChannel++;
-    if (showpeople()) // If my phone is connected to network
+
+    // Change profile based on owner's presence
+    if (showpeople())
     {
         if (!getLocalTime(&timeinfo))
         {
@@ -53,35 +53,70 @@ void handleAuto(UniversalTelegramBot *bot, Relay *relays)
             Serial.println(timeinfo.tm_sec);
             if (timeinfo.tm_hour >= 5 && timeinfo.tm_hour < 6)
             {
-                Serial.println("Mode 1");
-                relays[1].turnOn();
-                relays[2].turnOff();
+                profile = "Morning";
             }
             else if (timeinfo.tm_hour >= 6 && timeinfo.tm_hour < 19)
             {
-                Serial.println("Mode 2");
-                relays[1].turnOff();
-                relays[2].turnOn();
+                profile = "Day";
             }
             else if (timeinfo.tm_hour >= 19 && timeinfo.tm_hour < 23)
             {
-                Serial.println("Mode 3");
-                relays[1].turnOn();
-                relays[2].turnOff();
+                profile = "Evening";
             }
             else
             {
-                Serial.println("Mode 4");
-                relays[1].turnOff();
-                relays[2].turnOff();
+                profile = "Night";
             }
         }
     }
     else
     {
-        Serial.println("Mode 0");
-        relays[1].turnOff();
-        relays[2].turnOff();
+        profile = "Off";
+    }
+
+    // On change profile
+    if (profile != prev_profile)
+    {
+        prev_profile = profile;
+        if (profile == "Morning")
+        {
+            Serial.println("Mode 1");
+            relays[1].turnOn();
+            relays[2].turnOff();
+        }
+        else if (profile == "Day")
+        {
+            Serial.println("Mode 2");
+            bot->sendMessage(CHAT_ID, "Morning ~", "");
+            relays[1].turnOff();
+            relays[2].turnOn();
+        }
+        else if (profile == "Evening")
+        {
+            Serial.println("Mode 3");
+            bot->sendMessage(CHAT_ID, "Good evening ~", "");
+            relays[1].turnOn();
+            relays[2].turnOff();
+        }
+        else if (profile == "Night")
+        {
+            Serial.println("Mode 4");
+            bot->sendMessage(CHAT_ID, "Good night ~", "");
+            relays[1].turnOff();
+            relays[2].turnOff();
+        }
+        else if (profile == "Off")
+        {
+            Serial.println("Mode 0");
+            bot->sendMessage(CHAT_ID, "Cya ~", "");
+            relays[1].turnOff();
+            relays[2].turnOff();
+        }
+        else
+        {
+            Serial.println("Error: invalid profile");
+            bot->sendMessage(CHAT_ID, "Error: invalid profile", "");
+        }
     }
 }
 
