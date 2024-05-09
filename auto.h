@@ -77,6 +77,10 @@ void handleAuto(UniversalTelegramBot *bot, Relay *relays)
     // On change profile
     if (profile != prev_profile)
     {
+        if (prev_profile == "Off")
+        {
+            bot->sendMessage(CHAT_ID, "Okaeri~", "");
+        }
         prev_profile = profile;
         if (profile == "Morning")
         {
