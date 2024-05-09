@@ -25,27 +25,31 @@ void setupAuto()
 void handleAuto(UniversalTelegramBot *bot, Relay *relays)
 {
     // From wifi-sniffer.h
-    Serial.println("Changed channel:" + String(curChannel));
+    Serial.println("[Auto] Changed channel:" + String(curChannel));
     if (curChannel > maxCh)
     {
         curChannel = 1;
     }
+    Serial.println("[Auto] Changing Wi-Fi channel...");
     esp_wifi_set_channel(curChannel, WIFI_SECOND_CHAN_NONE);
+    Serial.println("[Auto] Wait for 1s..."); // Prevents flickering
     delay(1000);
+    Serial.println("[Auto] Updating beacon list...");
     updatetime();
     purge();
     curChannel++;
 
     // Change profile based on owner's presence
+    Serial.println("[Auto] Checking owner's presence...");
     if (showpeople())
     {
         if (!getLocalTime(&timeinfo))
         {
-            Serial.println("Failed to obtain time");
+            Serial.println("[Auto] Failed to obtain time");
         }
         else
         {
-            Serial.print("Current time: ");
+            Serial.print("[Auto] Current time: ");
             Serial.print(timeinfo.tm_hour);
             Serial.print(":");
             Serial.print(timeinfo.tm_min);
@@ -84,42 +88,42 @@ void handleAuto(UniversalTelegramBot *bot, Relay *relays)
         prev_profile = profile;
         if (profile == "Morning")
         {
-            Serial.println("Profile switched to \"Morning\"");
-            bot->sendMessage(CHAT_ID, "Morning ~", "");
+            Serial.println("[Auto] Profile switched to \"Morning\"");
             relays[1].turnOn();
             relays[2].turnOff();
+            bot->sendMessage(CHAT_ID, "Morning ~", "");
         }
         else if (profile == "Day")
         {
-            Serial.println("Profile switched to \"Day\"");
-            bot->sendMessage(CHAT_ID, "Time to start your day! 🔥", "");
+            Serial.println("[Auto] Profile switched to \"Day\"");
             relays[1].turnOff();
             relays[2].turnOn();
+            bot->sendMessage(CHAT_ID, "Time to start your day! 🔥", "");
         }
         else if (profile == "Evening")
         {
-            Serial.println("Profile switched to \"Evening\"");
-            bot->sendMessage(CHAT_ID, "Good evening ~", "");
+            Serial.println("[Auto] Profile switched to \"Evening\"");
             relays[1].turnOn();
             relays[2].turnOff();
+            bot->sendMessage(CHAT_ID, "Good evening ~", "");
         }
         else if (profile == "Night")
         {
-            Serial.println("Profile switched to \"Night\"");
-            bot->sendMessage(CHAT_ID, "Good night ~", "");
+            Serial.println("[Auto] Profile switched to \"Night\"");
             relays[1].turnOff();
             relays[2].turnOff();
+            bot->sendMessage(CHAT_ID, "Good night ~", "");
         }
         else if (profile == "Off")
         {
-            Serial.println("Profile switched to \"Off\"");
-            bot->sendMessage(CHAT_ID, "Cya ~", "");
+            Serial.println("[Auto] Profile switched to \"Off\"");
             relays[1].turnOff();
             relays[2].turnOff();
+            bot->sendMessage(CHAT_ID, "Cya ~", "");
         }
         else
         {
-            Serial.println("ERROR: invalid profile");
+            Serial.println("[Auto] ERROR: invalid profile");
             bot->sendMessage(CHAT_ID, "ERROR: invalid profile", "");
         }
     }

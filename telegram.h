@@ -49,8 +49,15 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
 
         if (text == "/options")
         {
-            String keyboardJson = RELAY_SELECT_MENU;
-            (*bot).sendMessageWithReplyKeyboard(chat_id, "Select Relay", "", keyboardJson, true, true);
+            if (*auto_mode == 1)
+            {
+                (*bot).sendMessage(chat_id, "Can't do that! Turn off auto mode first using /manual", "");
+            }
+            else
+            {
+                String keyboardJson = RELAY_SELECT_MENU;
+                (*bot).sendMessageWithReplyKeyboard(chat_id, "Select Relay", "", keyboardJson, true, true);
+            }
         }
 
         if (text == "/auto")

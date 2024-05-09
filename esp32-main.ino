@@ -32,9 +32,10 @@ void setup()
     while (WiFi.status() != WL_CONNECTED)
     {
         delay(1000);
-        Serial.println("Connecting to WiFi..");
+        Serial.println("[Main] Connecting to WiFi..");
     }
     // Print ESP32 Local IP Address
+    Serial.print("[Main] ");
     Serial.println(WiFi.localIP());
     bot.sendMessage(CHAT_ID, "Hello, I just woke up (●'◡'●)", "");
 }
@@ -43,13 +44,19 @@ void loop()
 {
     if (millis() > lastTimeBotRan + botRequestDelay)
     {
+        Serial.println("[Main] Bot ready. Getting messages...");
         int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
+        Serial.print("[Main] Got ");
+        Serial.print(numNewMessages);
+        Serial.println(" messages.");
 
         while (numNewMessages)
         {
+            Serial.println("[Main] Got new messages, handling...");
             handleNewMessages(&bot, numNewMessages, &auto_mode, relays);
             numNewMessages = bot.getUpdates(bot.last_message_received + 1);
         }
+        Serial.println("[Main] Waiting before next bot run...");
         lastTimeBotRan = millis();
     }
     if (auto_mode == 1)

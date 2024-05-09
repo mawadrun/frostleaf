@@ -39,7 +39,7 @@ void sniffer(void *buf, wifi_promiscuous_pkt_type_t type)
     len -= sizeof(WifiMgmtHdr);
     if (len < 0)
     {
-        Serial.println("Receuved 0");
+        Serial.println("Received 0");
         return;
     }
     String packet;
@@ -164,7 +164,7 @@ bool showpeople()
                 {
                     val = true;
                     forScreen += (KnownMac[j][0] + " : " + maclist[i][2] + "\n");
-                    Serial.print(KnownMac[j][0] + " : " + tmp1 + " : " + maclist[i][2] + "\n -- \n");
+                    Serial.print("[Snfr] " + KnownMac[j][0] + " : " + tmp1 + " : " + maclist[i][2] + "\n[Snfr] -- \n");
                 }
             }
         }
