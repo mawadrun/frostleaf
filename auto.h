@@ -16,6 +16,8 @@ struct tm timeinfo;
 
 String profile = "";
 String prev_profile = profile;
+int turnOffDelay = 15000;
+unsigned long lastPeoplePresence;
 
 void setupAuto()
 {
@@ -72,8 +74,10 @@ void handleAuto(UniversalTelegramBot *bot, Relay *relays)
                 profile = "Night";
             }
         }
+        lastPeoplePresence = millis();
     }
-    else
+    // Wait for turnOffDelay before turning off
+    else if (millis() > lastPeoplePresence + turnOffDelay)
     {
         profile = "Off";
     }
