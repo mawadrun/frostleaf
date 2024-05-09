@@ -80,42 +80,43 @@ void handleAuto(UniversalTelegramBot *bot, Relay *relays)
         prev_profile = profile;
         if (profile == "Morning")
         {
-            Serial.println("Mode 1");
+            Serial.println("Profile switched to \"Morning\"");
+            bot->sendMessage(CHAT_ID, "Morning ~", "");
             relays[1].turnOn();
             relays[2].turnOff();
         }
         else if (profile == "Day")
         {
-            Serial.println("Mode 2");
-            bot->sendMessage(CHAT_ID, "Morning ~", "");
+            Serial.println("Profile switched to \"Day\"");
+            bot->sendMessage(CHAT_ID, "Time to start your day! 🔥", "");
             relays[1].turnOff();
             relays[2].turnOn();
         }
         else if (profile == "Evening")
         {
-            Serial.println("Mode 3");
+            Serial.println("Profile switched to \"Evening\"");
             bot->sendMessage(CHAT_ID, "Good evening ~", "");
             relays[1].turnOn();
             relays[2].turnOff();
         }
         else if (profile == "Night")
         {
-            Serial.println("Mode 4");
+            Serial.println("Profile switched to \"Night\"");
             bot->sendMessage(CHAT_ID, "Good night ~", "");
             relays[1].turnOff();
             relays[2].turnOff();
         }
         else if (profile == "Off")
         {
-            Serial.println("Mode 0");
+            Serial.println("Profile switched to \"Off\"");
             bot->sendMessage(CHAT_ID, "Cya ~", "");
             relays[1].turnOff();
             relays[2].turnOff();
         }
         else
         {
-            Serial.println("Error: invalid profile");
-            bot->sendMessage(CHAT_ID, "Error: invalid profile", "");
+            Serial.println("ERROR: invalid profile");
+            bot->sendMessage(CHAT_ID, "ERROR: invalid profile", "");
         }
     }
 }

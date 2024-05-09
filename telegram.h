@@ -50,7 +50,7 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
         if (text == "/options")
         {
             String keyboardJson = RELAY_SELECT_MENU;
-            (*bot).sendMessageWithReplyKeyboard(chat_id, "Select Relay", "", keyboardJson, true);
+            (*bot).sendMessageWithReplyKeyboard(chat_id, "Select Relay", "", keyboardJson, true, true);
         }
 
         if (text == "/auto")
@@ -105,7 +105,7 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
                 Serial.print("Operating on relay ");
                 Serial.println(relay_index + 1);
                 String keyboardJson = RELAY_OPERATION_MENU;
-                (*bot).sendMessageWithReplyKeyboard(chat_id, "Select operation", "", keyboardJson, true);
+                (*bot).sendMessageWithReplyKeyboard(chat_id, "Select operation", "", keyboardJson, true, true);
             }
         }
 
@@ -117,7 +117,6 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
             Serial.println(" set to ON.");
             relays[relay_index].turnOn();
             String keyboardJson = RELAY_SELECT_MENU;
-            (*bot).sendMessageWithReplyKeyboard(chat_id, "Select Relay", "", keyboardJson, true);
         }
 
         if (text == "🟥 OFF")
@@ -128,7 +127,6 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
             Serial.println(" set to OFF.");
             relays[relay_index].turnOff();
             String keyboardJson = RELAY_SELECT_MENU;
-            (*bot).sendMessageWithReplyKeyboard(chat_id, "Select Relay", "", keyboardJson, true);
         }
     }
 }
