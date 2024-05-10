@@ -102,7 +102,7 @@ void handleAuto(UniversalTelegramBot *bot, Relay *relays)
             Serial.println("[Auto] Profile switched to \"Day\"");
             relays[1].turnOff();
             relays[2].turnOn();
-            bot->sendMessage(CHAT_ID, "Time to start your day! 🔥", "");
+            bot->sendMessage(CHAT_ID, "Have a great day ~", "");
         }
         else if (profile == "Evening")
         {
