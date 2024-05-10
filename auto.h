@@ -5,6 +5,9 @@
 #include <UniversalTelegramBot.h>
 #include <string>
 #include <time.h>
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+#include <WebSerialLite.h>
 #include "wifi-sniffer.h"
 #include "Relay.h"
 
@@ -27,36 +30,36 @@ void setupAuto()
 void handleAuto(UniversalTelegramBot *bot, Relay *relays)
 {
     // From wifi-sniffer.h
-    Serial.println("[Auto] Changed channel:" + String(curChannel));
+    WebSerial.println("[Auto] Changed channel:" + String(curChannel));
     if (curChannel > maxCh)
     {
         curChannel = 1;
     }
-    Serial.println("[Auto] Changing Wi-Fi channel...");
+    WebSerial.println("[Auto] Changing Wi-Fi channel...");
     esp_wifi_set_channel(curChannel, WIFI_SECOND_CHAN_NONE);
-    Serial.println("[Auto] Wait for 1s..."); // Prevents flickering
+    WebSerial.println("[Auto] Wait for 1s..."); // Prevents flickering
     delay(1000);
-    Serial.println("[Auto] Updating beacon list...");
+    WebSerial.println("[Auto] Updating beacon list...");
     updatetime();
     purge();
     curChannel++;
 
     // Change profile based on owner's presence
-    Serial.println("[Auto] Checking owner's presence...");
+    WebSerial.println("[Auto] Checking owner's presence...");
     if (showpeople())
     {
         if (!getLocalTime(&timeinfo))
         {
-            Serial.println("[Auto] Failed to obtain time");
+            WebSerial.println("[Auto] Failed to obtain time");
         }
         else
         {
-            Serial.print("[Auto] Current time: ");
-            Serial.print(timeinfo.tm_hour);
-            Serial.print(":");
-            Serial.print(timeinfo.tm_min);
-            Serial.print(":");
-            Serial.println(timeinfo.tm_sec);
+            WebSerial.print("[Auto] Current time: ");
+            WebSerial.print(timeinfo.tm_hour);
+            WebSerial.print(":");
+            WebSerial.print(timeinfo.tm_min);
+            WebSerial.print(":");
+            WebSerial.println(timeinfo.tm_sec);
             if (timeinfo.tm_hour >= 5 && timeinfo.tm_hour < 6)
             {
                 profile = "Morning";
@@ -92,42 +95,42 @@ void handleAuto(UniversalTelegramBot *bot, Relay *relays)
         prev_profile = profile;
         if (profile == "Morning")
         {
-            Serial.println("[Auto] Profile switched to \"Morning\"");
+            WebSerial.println("[Auto] Profile switched to \"Morning\"");
             relays[1].turnOn();
             relays[2].turnOff();
             bot->sendMessage(CHAT_ID, "Morning ~", "");
         }
         else if (profile == "Day")
         {
-            Serial.println("[Auto] Profile switched to \"Day\"");
+            WebSerial.println("[Auto] Profile switched to \"Day\"");
             relays[1].turnOff();
             relays[2].turnOn();
             bot->sendMessage(CHAT_ID, "Have a great day ~", "");
         }
         else if (profile == "Evening")
         {
-            Serial.println("[Auto] Profile switched to \"Evening\"");
+            WebSerial.println("[Auto] Profile switched to \"Evening\"");
             relays[1].turnOn();
             relays[2].turnOff();
             bot->sendMessage(CHAT_ID, "Good evening ~", "");
         }
         else if (profile == "Night")
         {
-            Serial.println("[Auto] Profile switched to \"Night\"");
+            WebSerial.println("[Auto] Profile switched to \"Night\"");
             relays[1].turnOff();
             relays[2].turnOff();
             bot->sendMessage(CHAT_ID, "Good night ~", "");
         }
         else if (profile == "Off")
         {
-            Serial.println("[Auto] Profile switched to \"Off\"");
+            WebSerial.println("[Auto] Profile switched to \"Off\"");
             relays[1].turnOff();
             relays[2].turnOff();
             bot->sendMessage(CHAT_ID, "Cya ~", "");
         }
         else
         {
-            Serial.println("[Auto] ERROR: invalid profile");
+            WebSerial.println("[Auto] ERROR: invalid profile");
             bot->sendMessage(CHAT_ID, "ERROR: invalid profile", "");
         }
     }

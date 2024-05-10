@@ -5,6 +5,9 @@
 #include <WiFiClientSecure.h>
 #include <UniversalTelegramBot.h> // Universal Telegram Bot Library written by Brian Lough: https://github.com/witnessmenow/Universal-Arduino-Telegram-Bot
 #include <ArduinoJson.h>          // Initialize Telegram BOT
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+#include <WebSerialLite.h>
 #include "secrets.h"
 #include "Relay.h"
 
@@ -19,8 +22,8 @@ int relay_index = 0;
 // Handle what happens when you receive new messages
 void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_mode, Relay *relays)
 {
-    // Serial.print("Received: ");
-    // Serial.println(String(numNewMessages));
+    // WebSerial.print("Received: ");
+    // WebSerial.println(String(numNewMessages));
 
     for (int i = 0; i < numNewMessages; i++)
     {
@@ -34,9 +37,9 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
 
         // Print the received message
         String text = bot->messages[i].text;
-        Serial.print("Received: \"");
-        Serial.print(text);
-        Serial.println("\"");
+        WebSerial.print("Received: \"");
+        WebSerial.print(text);
+        WebSerial.println("\"");
 
         String from_name = bot->messages[i].from_name;
 
@@ -94,10 +97,10 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
 
         if (text.substring(0, 3) == "REL")
         {
-            Serial.println("received RELAY");
+            WebSerial.println("received RELAY");
             relay_index = (int)(text[4]) - 48 - 1;
-            Serial.print("Operating on relay ");
-            Serial.println(relay_index + 1);
+            WebSerial.print("Operating on relay ");
+            WebSerial.println(relay_index + 1);
             String keyboardJson = RELAY_OPERATION_MENU;
             bot->sendMessageWithReplyKeyboard(chat_id, "Select operation", "", keyboardJson, true, true);
         }
@@ -105,9 +108,9 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
         if (text == "🟦 ON")
         {
             bot->sendMessage(chat_id, "Relay state set to ON", "");
-            Serial.print("Relay ");
-            Serial.print(relay_index + 1);
-            Serial.println(" set to ON.");
+            WebSerial.print("Relay ");
+            WebSerial.print(relay_index + 1);
+            WebSerial.println(" set to ON.");
             relays[relay_index].turnOn();
             String keyboardJson = RELAY_SELECT_MENU;
         }
@@ -115,9 +118,9 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
         if (text == "🟥 OFF")
         {
             bot->sendMessage(chat_id, "Relay state set to OFF", "");
-            Serial.print("Relay ");
-            Serial.print(relay_index + 1);
-            Serial.println(" set to OFF.");
+            WebSerial.print("Relay ");
+            WebSerial.print(relay_index + 1);
+            WebSerial.println(" set to OFF.");
             relays[relay_index].turnOff();
             String keyboardJson = RELAY_SELECT_MENU;
         }

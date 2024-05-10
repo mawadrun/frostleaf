@@ -6,6 +6,7 @@
 Relay relays[4] = {Relay(33, true, false), Relay(25, true, false), Relay(26, true, false), Relay(27, true, false)};
 WiFiClientSecure client;
 UniversalTelegramBot bot(BOTtoken, client);
+AsyncWebServer server(80);
 
 // Flags
 int auto_mode = 1;
@@ -38,25 +39,28 @@ void setup()
     Serial.print("[Main] ");
     Serial.println(WiFi.localIP());
     bot.sendMessage(CHAT_ID, "Hello, I just woke up (●'◡'●)", "");
+
+    WebSerial.begin(&server);
+    server.begin();
 }
 
 void loop()
 {
     if (millis() > lastTimeBotRan + botRequestDelay)
     {
-        Serial.println("[Main] Bot ready. Getting messages...");
+        WebSerial.println("[Main] Bot ready. Getting messages...");
         int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
-        Serial.print("[Main] Got ");
-        Serial.print(numNewMessages);
-        Serial.println(" messages.");
+        WebSerial.print("[Main] Got ");
+        WebSerial.print(numNewMessages);
+        WebSerial.println(" messages.");
 
         while (numNewMessages)
         {
-            Serial.println("[Main] Got new messages, handling...");
+            WebSerial.println("[Main] Got new messages, handling...");
             handleNewMessages(&bot, numNewMessages, &auto_mode, relays);
             numNewMessages = bot.getUpdates(bot.last_message_received + 1);
         }
-        Serial.println("[Main] Waiting before next bot run...");
+        WebSerial.println("[Main] Waiting before next bot run...");
         lastTimeBotRan = millis();
     }
     if (auto_mode == 1)
