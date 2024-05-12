@@ -41,7 +41,7 @@ void setupAuto()
     setupSniffer();
 }
 
-void handleAuto(UniversalTelegramBot *bot, Relay *relays)
+void handleAuto(UniversalTelegramBot *bot, Relay *relays, bool *stopRiceCookerWhenHome)
 {
     // From wifi-sniffer.h
     WebSerial.println("[Auto] Changed channel:" + String(curChannel));
@@ -106,6 +106,13 @@ void handleAuto(UniversalTelegramBot *bot, Relay *relays)
         if (prev_profile == "Off")
         {
             bot->sendMessage(CHAT_ID, "Okaeri~", "");
+            // Rice cooker
+            if (*stopRiceCookerWhenHome)
+            {
+                *stopRiceCookerWhenHome = false;
+                relays[3].turnOff();
+                bot->sendMessage(CHAT_ID, "Warm rice is ready!", "");
+            }
         }
         prev_profile = profile;
         if (profile == "Morning")

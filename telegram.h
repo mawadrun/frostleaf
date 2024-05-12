@@ -14,6 +14,12 @@
 #define RELAY_SELECT_MENU "[[\"REL 1 - None 🚫\", \"REL 2 - Warm light 🟨\"],[\"REL 3 - Cold light 🟦\", \"REL 4 - Rice cooker 🌾🔥\"]]"
 #define RELAY_OPERATION_MENU "[[\"🟦 ON\", \"🟥 OFF\"]]"
 
+// Flags
+bool stopRiceCookerWhenHome = false;
+int riceCookerCookingMin = -1;
+unsigned long riceCookerStartTime;
+String notifyChatID;
+
 // Checks for new messages every 1 second.
 int botRequestDelay = 100;
 unsigned long lastTimeBotRan;
@@ -53,7 +59,7 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
         if (text == "/options")
         {
             String keyboardJson = RELAY_SELECT_MENU;
-            bot->sendMessageWithReplyKeyboard(chat_id, "Select Relay", "", keyboardJson, true, true);
+            bot->sendMessageWithReplyKeyboard(chat_id, "Select Relay", "", keyboardJson, true);
         }
 
         if (text == "/auto")
@@ -95,6 +101,46 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
             bot->sendMessage(chat_id, status, "");
         }
 
+        if (text == "/warm")
+        {
+            bot->sendMessage(chat_id, "Usage: /warm <cancel (optional)> <turn off when I'm home (y/n)> <duration in minutes (if n)>", "");
+        }
+
+        if (text.substring(0, 6) == "/warm ")
+        {
+            if (text[6] == 'y')
+            {
+                stopRiceCookerWhenHome = true;
+                relays[3].turnOn();
+                bot->sendMessage(chat_id, "I'm warming up the rice! Will stop once you're home ~", "");
+            }
+            else if (text[6] == 'n')
+            {
+                stopRiceCookerWhenHome = false;
+                riceCookerCookingMin = text.substring(8, 11).toInt();
+                riceCookerStartTime = millis();
+                relays[3].turnOn();
+                String message = "I will warm up the rice for " + String(riceCookerCookingMin) + " minutes!";
+                bot->sendMessage(chat_id, message, "");
+                notifyChatID = chat_id;
+            }
+            else if (text.substring(6, 12) == "cancel")
+            {
+                if (riceCookerCookingMin < 0)
+                {
+                    bot->sendMessage(chat_id, "Nothing to cancel!", "");
+                }
+                else
+                {
+                    riceCookerCookingMin = -1;
+                    relays[3].turnOff();
+                    int warmUpDurationSec = (millis() - riceCookerStartTime) / 1000;
+                    String message = "Cancelled warming up rice after " + String(warmUpDurationSec / 60) + " minutes and " + String(warmUpDurationSec % 60) + " seconds.";
+                    bot->sendMessage(chat_id, message, "");
+                }
+            }
+        }
+
         if (text.substring(0, 3) == "REL")
         {
             WebSerial.println("received RELAY");
@@ -102,7 +148,7 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
             WebSerial.print("Operating on relay ");
             WebSerial.println(relay_index + 1);
             String keyboardJson = RELAY_OPERATION_MENU;
-            bot->sendMessageWithReplyKeyboard(chat_id, "Select operation", "", keyboardJson, true, true);
+            bot->sendMessageWithReplyKeyboard(chat_id, "Select operation", "", keyboardJson, true);
         }
 
         if (text == "🟦 ON")
@@ -112,7 +158,7 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
             WebSerial.print(relay_index + 1);
             WebSerial.println(" set to ON.");
             relays[relay_index].turnOn();
-            String keyboardJson = RELAY_SELECT_MENU;
+            bot->sendMessageWithReplyKeyboard(chat_id, "", "", "", true); // hides reply keyboard
         }
 
         if (text == "🟥 OFF")
@@ -122,7 +168,7 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
             WebSerial.print(relay_index + 1);
             WebSerial.println(" set to OFF.");
             relays[relay_index].turnOff();
-            String keyboardJson = RELAY_SELECT_MENU;
+            bot->sendMessageWithReplyKeyboard(chat_id, "", "", "", true); // hides reply keyboard
         }
     }
 }

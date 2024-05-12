@@ -63,8 +63,16 @@ void loop()
         WebSerial.println("[Main] Waiting before next bot run...");
         lastTimeBotRan = millis();
     }
+
+    if (riceCookerCookingMin >= 0 && (millis() > riceCookerStartTime + riceCookerCookingMin * 60 * 1000))
+    {
+        relays[3].turnOff();
+        bot.sendMessage(notifyChatID, "Warm rice is ready!", "");
+        riceCookerCookingMin = -1;
+    }
+
     if (auto_mode == 1)
     {
-        handleAuto(&bot, relays);
+        handleAuto(&bot, relays, &stopRiceCookerWhenHome);
     }
 }
