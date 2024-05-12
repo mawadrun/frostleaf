@@ -21,6 +21,20 @@ String profile = "";
 String prev_profile = profile;
 int turnOffDelay = 15000;
 unsigned long lastPeoplePresence;
+bool presencePerChannel[maxCh];
+
+bool isTherePeople()
+{
+    int val = false;
+    for (int i = 0; i < maxCh; i++)
+    {
+        if (presencePerChannel[i] == true)
+        {
+            val = true;
+        }
+    }
+    return val;
+}
 
 void setupAuto()
 {
@@ -42,11 +56,12 @@ void handleAuto(UniversalTelegramBot *bot, Relay *relays)
     WebSerial.println("[Auto] Updating beacon list...");
     updatetime();
     purge();
-    curChannel++;
 
     // Change profile based on owner's presence
     WebSerial.println("[Auto] Checking owner's presence...");
-    if (showpeople())
+    presencePerChannel[curChannel - 1] = showpeople();
+    curChannel++;
+    if (isTherePeople())
     {
         if (!getLocalTime(&timeinfo))
         {
