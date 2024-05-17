@@ -42,7 +42,7 @@ void sniffer(void *buf, wifi_promiscuous_pkt_type_t type)
     len -= sizeof(WifiMgmtHdr);
     if (len < 0)
     {
-        WebSerial.println("Received 0");
+        Serial.println("Received 0");
         return;
     }
     String packet;
@@ -76,11 +76,11 @@ void sniffer(void *buf, wifi_promiscuous_pkt_type_t type)
     { // If its new. add it to the array.
         maclist[listcount][0] = mac;
         maclist[listcount][1] = defaultTTL;
-        // WebSerial.println(mac);
+        // Serial.println(mac);
         listcount++;
         if (listcount >= 64)
         {
-            WebSerial.println("Too many addresses");
+            Serial.println("Too many addresses");
             listcount = 0;
         }
     }
@@ -90,7 +90,7 @@ void sniffer(void *buf, wifi_promiscuous_pkt_type_t type)
 void setupSniffer()
 {
 
-    /* start WebSerial */
+    /* start Serial */
     Serial.begin(115200);
 
     /* setup wifi */
@@ -104,7 +104,7 @@ void setupSniffer()
     esp_wifi_set_promiscuous_rx_cb(&sniffer);
     esp_wifi_set_channel(curChannel, WIFI_SECOND_CHAN_NONE);
 
-    WebSerial.println("starting!");
+    Serial.println("starting!");
 }
 
 void purge()
@@ -117,7 +117,7 @@ void purge()
             ttl--;
             if (ttl <= 0)
             {
-                // WebSerial.println("OFFLINE: " + maclist[i][0]);
+                // Serial.println("OFFLINE: " + maclist[i][0]);
                 maclist[i][2] = "OFFLINE";
                 maclist[i][1] = defaultTTL;
             }
@@ -144,20 +144,20 @@ void updatetime()
                 maclist[i][2] = String(timehere);
             }
 
-            // WebSerial.println(maclist[i][0] + " : " + maclist[i][2]);
+            // Serial.println(maclist[i][0] + " : " + maclist[i][2]);
         }
     }
 }
 
 bool showpeople()
-{ // This checks if the MAC is in the reckonized list and then displays it on the OLED and/or prints it to WebSerial.
+{ // This checks if the MAC is in the reckonized list and then displays it on the OLED and/or prints it to Serial.
     String forScreen = "";
     bool val = false;
     for (int i = 0; i <= 63; i++)
     {
         String tmp1 = maclist[i][0];
         String status = maclist[i][2]; // To check if phone is offline
-        // WebSerial.println(tmp1);
+        // Serial.println(tmp1);
         if (!(tmp1 == ""))
         {
             for (int j = 0; j <= 9; j++)
@@ -167,7 +167,7 @@ bool showpeople()
                 {
                     val = true;
                     forScreen += (KnownMac[j][0] + " : " + maclist[i][2] + "\n");
-                    WebSerial.print("[Snfr] " + KnownMac[j][0] + " : " + tmp1 + " : " + maclist[i][2] + "\n[Snfr] -- \n");
+                    Serial.print("[Snfr] " + KnownMac[j][0] + " : " + tmp1 + " : " + maclist[i][2] + "\n[Snfr] -- \n");
                 }
             }
         }
@@ -178,7 +178,7 @@ bool showpeople()
 //===== LOOP =====//
 // void loop()
 // {
-//     WebSerial.println("Changed channel:" + String(curChannel));
+//     Serial.println("Changed channel:" + String(curChannel));
 //     if (curChannel > maxCh)
 //     {
 //         curChannel = 1;

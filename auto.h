@@ -44,37 +44,37 @@ void setupAuto()
 void handleAuto(UniversalTelegramBot *bot, Relay *relays, bool *stopRiceCookerWhenHome)
 {
     // From wifi-sniffer.h
-    WebSerial.println("[Auto] Changed channel:" + String(curChannel));
+    Serial.println("[Auto] Changed channel:" + String(curChannel));
     if (curChannel > maxCh)
     {
         curChannel = 1;
     }
-    WebSerial.println("[Auto] Changing Wi-Fi channel...");
+    Serial.println("[Auto] Changing Wi-Fi channel...");
     esp_wifi_set_channel(curChannel, WIFI_SECOND_CHAN_NONE);
-    WebSerial.println("[Auto] Wait for 1s..."); // Prevents flickering
+    Serial.println("[Auto] Wait for 1s..."); // Prevents flickering
     delay(1000);
-    WebSerial.println("[Auto] Updating beacon list...");
+    Serial.println("[Auto] Updating beacon list...");
     updatetime();
     purge();
 
     // Change profile based on owner's presence
-    WebSerial.println("[Auto] Checking owner's presence...");
+    Serial.println("[Auto] Checking owner's presence...");
     presencePerChannel[curChannel - 1] = showpeople();
     curChannel++;
     if (isTherePeople())
     {
         if (!getLocalTime(&timeinfo))
         {
-            WebSerial.println("[Auto] Failed to obtain time");
+            Serial.println("[Auto] Failed to obtain time");
         }
         else
         {
-            WebSerial.print("[Auto] Current time: ");
-            WebSerial.print(timeinfo.tm_hour);
-            WebSerial.print(":");
-            WebSerial.print(timeinfo.tm_min);
-            WebSerial.print(":");
-            WebSerial.println(timeinfo.tm_sec);
+            Serial.print("[Auto] Current time: ");
+            Serial.print(timeinfo.tm_hour);
+            Serial.print(":");
+            Serial.print(timeinfo.tm_min);
+            Serial.print(":");
+            Serial.println(timeinfo.tm_sec);
             if (timeinfo.tm_hour >= 5 && timeinfo.tm_hour < 6)
             {
                 profile = "Morning";
@@ -117,42 +117,42 @@ void handleAuto(UniversalTelegramBot *bot, Relay *relays, bool *stopRiceCookerWh
         prev_profile = profile;
         if (profile == "Morning")
         {
-            WebSerial.println("[Auto] Profile switched to \"Morning\"");
+            Serial.println("[Auto] Profile switched to \"Morning\"");
             relays[1].turnOn();
             relays[2].turnOff();
             bot->sendMessage(CHAT_ID, "Morning ~", "");
         }
         else if (profile == "Day")
         {
-            WebSerial.println("[Auto] Profile switched to \"Day\"");
+            Serial.println("[Auto] Profile switched to \"Day\"");
             relays[1].turnOff();
             relays[2].turnOn();
             bot->sendMessage(CHAT_ID, "Have a great day ~", "");
         }
         else if (profile == "Evening")
         {
-            WebSerial.println("[Auto] Profile switched to \"Evening\"");
+            Serial.println("[Auto] Profile switched to \"Evening\"");
             relays[1].turnOn();
             relays[2].turnOff();
             bot->sendMessage(CHAT_ID, "Good evening ~", "");
         }
         else if (profile == "Night")
         {
-            WebSerial.println("[Auto] Profile switched to \"Night\"");
+            Serial.println("[Auto] Profile switched to \"Night\"");
             relays[1].turnOff();
             relays[2].turnOff();
             bot->sendMessage(CHAT_ID, "Good night ~", "");
         }
         else if (profile == "Off")
         {
-            WebSerial.println("[Auto] Profile switched to \"Off\"");
+            Serial.println("[Auto] Profile switched to \"Off\"");
             relays[1].turnOff();
             relays[2].turnOff();
             bot->sendMessage(CHAT_ID, "Cya ~", "");
         }
         else
         {
-            WebSerial.println("[Auto] ERROR: invalid profile");
+            Serial.println("[Auto] ERROR: invalid profile");
             bot->sendMessage(CHAT_ID, "ERROR: invalid profile", "");
         }
     }

@@ -40,7 +40,7 @@ void setup()
     Serial.println(WiFi.localIP());
     bot.sendMessage(CHAT_ID, "Hello, I just woke up (●'◡'●)", "");
 
-    WebSerial.begin(&server);
+    // Serial.begin(&server);
     server.begin();
 }
 
@@ -48,19 +48,19 @@ void loop()
 {
     if (millis() > lastTimeBotRan + botRequestDelay)
     {
-        WebSerial.println("[Main] Bot ready. Getting messages...");
+        Serial.println("[Main] Bot ready. Getting messages...");
         int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
-        WebSerial.print("[Main] Got ");
-        WebSerial.print(numNewMessages);
-        WebSerial.println(" messages.");
+        Serial.print("[Main] Got ");
+        Serial.print(numNewMessages);
+        Serial.println(" messages.");
 
         while (numNewMessages)
         {
-            WebSerial.println("[Main] Got new messages, handling...");
+            Serial.println("[Main] Got new messages, handling...");
             handleNewMessages(&bot, numNewMessages, &auto_mode, relays);
             numNewMessages = bot.getUpdates(bot.last_message_received + 1);
         }
-        WebSerial.println("[Main] Waiting before next bot run...");
+        Serial.println("[Main] Waiting before next bot run...");
         lastTimeBotRan = millis();
     }
 
