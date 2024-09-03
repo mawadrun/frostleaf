@@ -61,7 +61,7 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
             bot->sendMessage(chat_id, welcome, "");
         }
 
-        if (text == "/toggle-auto")
+        if (text == "/toggle_auto")
         {
             if (*auto_mode == 1)
             {
@@ -147,7 +147,7 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
             notifyChatID = chat_id;
         }
 
-        if (text == "/toggle-dark")
+        if (text == "/toggle_dark")
         {
             if (dark_mode == 0)
             {
