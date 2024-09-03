@@ -18,7 +18,13 @@
 bool stopRiceCookerWhenHome = false;
 int riceCookerCookingMin = -1;
 unsigned long riceCookerStartTime;
+
+int teaMin = -1;
+unsigned long teaStartTime;
 String notifyChatID;
+
+int dark_mode = 0;
+bool lastLampState[2] = {0, 0};
 
 // Checks for new messages every 1 second.
 int botRequestDelay = 100;
@@ -52,85 +58,67 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
         if (text == "/start")
         {
             String welcome = "Welcome, " + from_name + ".\n";
-            welcome += "Use /options to start.\n\n";
             bot->sendMessage(chat_id, welcome, "");
         }
 
-        if (text == "/options")
-        {
-            String keyboardJson = RELAY_SELECT_MENU;
-            bot->sendMessageWithReplyKeyboard(chat_id, "Select Relay", "", keyboardJson, true);
-        }
-
-        if (text == "/auto")
+        if (text == "/toggle-auto")
         {
             if (*auto_mode == 1)
             {
-                bot->sendMessage(chat_id, "Auto mode is already on! (. ❛ ᴗ ❛.)", "");
+                *auto_mode = 0;
+                bot->sendMessage(chat_id, "🟥 Auto mode turned OFF! (. ❛ ᴗ ❛.)", "");
             }
             else
             {
                 *auto_mode = 1;
-                bot->sendMessage(chat_id, "Auto mode turned on! ☆*: .｡. o(≧▽≦)o .｡.:*☆", "");
-            }
-        }
-
-        if (text == "/manual")
-        {
-            if (*auto_mode == 0)
-            {
-                bot->sendMessage(chat_id, "You're in control! \(￣︶￣*\))", "");
-            }
-            else
-            {
-                *auto_mode = 0;
-                bot->sendMessage(chat_id, "Turned off auto mode. We're now in manual! (～￣▽￣)～", "");
+                bot->sendMessage(chat_id, "🟦 Auto mode turned ON! ☆*: .｡. o(≧▽≦)o .｡.:*☆", "");
             }
         }
 
         if (text == "/status")
         {
-            String status = "Relay statuses: \n\nREL 1 - ";
+            String status = "Status: \n\nDispenser - ";
             status += relays[0].getState() ? "🟦 ON" : "🟥 OFF";
-            status += "\nREL 2 - ";
+            status += "\nWarm light - ";
             status += relays[1].getState() ? "🟦 ON" : "🟥 OFF";
-            status += "\nREL 3 - ";
+            status += "\nCold light - ";
             status += relays[2].getState() ? "🟦 ON" : "🟥 OFF";
-            status += "\nREL 4 - ";
+            status += "\nRice cooker - ";
             status += relays[3].getState() ? "🟦 ON" : "🟥 OFF";
             bot->sendMessage(chat_id, status, "");
         }
 
-        if (text == "/warm")
+        if (text == "/cook")
         {
-            bot->sendMessage(chat_id, "Usage: /warm <cancel (optional)> <turn off when I'm home (y/n)> <duration in minutes (if n)>", "");
+            stopRiceCookerWhenHome = false;
+            riceCookerCookingMin = 120;
+            riceCookerStartTime = millis();
+            relays[3].turnOn();
+            String message = "I will cook the rice for " + String(riceCookerCookingMin) + " minutes!";
+            bot->sendMessage(chat_id, message, "");
+            notifyChatID = chat_id;
         }
 
-        if (text.substring(0, 6) == "/warm ")
+        if (text == "/warm")
         {
-            if (text[6] == 'y')
+            stopRiceCookerWhenHome = false;
+            riceCookerCookingMin = 30;
+            riceCookerStartTime = millis();
+            relays[3].turnOn();
+            String message = "I will warm up the rice for " + String(riceCookerCookingMin) + " minutes!";
+            bot->sendMessage(chat_id, message, "");
+            notifyChatID = chat_id;
+        }
+
+        if (text == "/cancel")
+        {
+            if (riceCookerCookingMin < 0 && teaMin < 0)
             {
-                stopRiceCookerWhenHome = true;
-                relays[3].turnOn();
-                bot->sendMessage(chat_id, "I'm warming up the rice! Will stop once you're home ~", "");
+                bot->sendMessage(chat_id, "Nothing to cancel!", "");
             }
-            else if (text[6] == 'n')
+            else
             {
-                stopRiceCookerWhenHome = false;
-                riceCookerCookingMin = text.substring(8, 11).toInt();
-                riceCookerStartTime = millis();
-                relays[3].turnOn();
-                String message = "I will warm up the rice for " + String(riceCookerCookingMin) + " minutes!";
-                bot->sendMessage(chat_id, message, "");
-                notifyChatID = chat_id;
-            }
-            else if (text.substring(6, 12) == "cancel")
-            {
-                if (riceCookerCookingMin < 0)
-                {
-                    bot->sendMessage(chat_id, "Nothing to cancel!", "");
-                }
-                else
+                if (riceCookerCookingMin >= 0)
                 {
                     riceCookerCookingMin = -1;
                     relays[3].turnOff();
@@ -138,37 +126,72 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
                     String message = "Cancelled warming up rice after " + String(warmUpDurationSec / 60) + " minutes and " + String(warmUpDurationSec % 60) + " seconds.";
                     bot->sendMessage(chat_id, message, "");
                 }
+                if (teaMin >= 0)
+                {
+                    teaMin = -1;
+                    relays[0].turnOff();
+                    int warmUpDurationSec = (millis() - riceCookerStartTime) / 1000;
+                    String message = "Cancelled making tea after " + String(warmUpDurationSec / 60) + " minutes and " + String(warmUpDurationSec % 60) + " seconds.";
+                    bot->sendMessage(chat_id, message, "");
+                }
             }
         }
 
-        if (text.substring(0, 3) == "REL")
+        if (text == "/tea")
         {
-            Serial.println("received RELAY");
-            relay_index = (int)(text[4]) - 48 - 1;
-            Serial.print("Operating on relay ");
-            Serial.println(relay_index + 1);
-            String keyboardJson = RELAY_OPERATION_MENU;
-            bot->sendMessageWithReplyKeyboard(chat_id, "Select operation", "", keyboardJson, true);
+            teaMin = 10; // measured
+            teaStartTime = millis();
+            relays[0].turnOn();
+            String message = "I will prepare warm water for tea!";
+            bot->sendMessage(chat_id, message, "");
+            notifyChatID = chat_id;
         }
 
-        if (text == "🟦 ON")
+        if (text == "/toggle-dark")
         {
-            bot->sendMessage(chat_id, "Relay state set to ON", "");
-            Serial.print("Relay ");
-            Serial.print(relay_index + 1);
-            Serial.println(" set to ON.");
-            relays[relay_index].turnOn();
-            bot->sendMessageWithReplyKeyboard(chat_id, "", "", "", true); // hides reply keyboard
-        }
+            if (dark_mode == 0)
+            {
+                if (*auto_mode == 1)
+                {
+                    String message = "Turning OFF auto mode...";
+                    bot->sendMessage(chat_id, message, "");
+                    *auto_mode = 0;
+                }
 
-        if (text == "🟥 OFF")
-        {
-            bot->sendMessage(chat_id, "Relay state set to OFF", "");
-            Serial.print("Relay ");
-            Serial.print(relay_index + 1);
-            Serial.println(" set to OFF.");
-            relays[relay_index].turnOff();
-            bot->sendMessageWithReplyKeyboard(chat_id, "", "", "", true); // hides reply keyboard
+                // Get current states
+                lastLampState[0] = relays[1].getState();
+                lastLampState[1] = relays[2].getState();
+
+                relays[1].turnOff();
+                relays[2].turnOff();
+                dark_mode = 1;
+                String message = "Time to immerse yourself!";
+                bot->sendMessage(chat_id, message, "");
+            }
+            else
+            {
+                if (*auto_mode == 0)
+                {
+                    String message = "Turning ON auto mode...";
+                    bot->sendMessage(chat_id, message, "");
+                    *auto_mode = 1;
+                }
+
+                // Restore last state
+                if (lastLampState[0])
+                {
+                    relays[1].turnOn();
+                }
+
+                if (lastLampState[1])
+                {
+                    relays[2].turnOn();
+                }
+
+                dark_mode = 0;
+                String message = "Welcome back!";
+                bot->sendMessage(chat_id, message, "");
+            }
         }
     }
 }

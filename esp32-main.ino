@@ -71,6 +71,13 @@ void loop()
         riceCookerCookingMin = -1;
     }
 
+    if (teaMin >= 0 && (millis() > teaStartTime + teaMin * 60 * 1000))
+    {
+        relays[0].turnOff();
+        bot.sendMessage(notifyChatID, "Warm water for your tea is ready!", "");
+        teaMin = -1;
+    }
+
     if (auto_mode == 1)
     {
         handleAuto(&bot, relays, &stopRiceCookerWhenHome);
