@@ -193,6 +193,36 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
                 bot->sendMessage(chat_id, message, "");
             }
         }
+        if (text == "/toggle_cozy")
+        {
+            String message;
+            if (relays[1].getState())
+            {
+                relays[1].turnOff();
+                message = "Turning off warm light!";
+            }
+            else
+            {
+                relays[1].turnOn();
+                message = "Turning on warm light!!";
+            }
+            bot->sendMessage(chat_id, message, "");
+        }
+        if (text == "/toggle_daylight")
+        {
+            String message;
+            if (relays[2].getState())
+            {
+                relays[2].turnOff();
+                message = "Turning off cold light!";
+            }
+            else
+            {
+                relays[2].turnOn();
+                message = "Turning on cold light!!";
+            }
+            bot->sendMessage(chat_id, message, "");
+        }
     }
 }
 #endif
