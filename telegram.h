@@ -1,18 +1,11 @@
-#ifndef TELEGRAM
-#define TELEGRAM
+#ifndef TELEGRAM_H
+#define TELEGRAM_H
 
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
-#include <UniversalTelegramBot.h> // Universal Telegram Bot Library written by Brian Lough: https://github.com/witnessmenow/Universal-Arduino-Telegram-Bot
-#include <ArduinoJson.h>          // Initialize Telegram BOT
-#include <AsyncTCP.h>
-#include <ESPAsyncWebServer.h>
-#include <WebSerialLite.h>
+#include <UniversalTelegramBot.h> // https://github.com/witnessmenow/Universal-Arduino-Telegram-Bot
 #include "secrets.h"
 #include "Relay.h"
-
-#define RELAY_SELECT_MENU "[[\"REL 1 - None 🚫\", \"REL 2 - Warm light 🟨\"],[\"REL 3 - Cold light 🟦\", \"REL 4 - Rice cooker 🌾🔥\"]]"
-#define RELAY_OPERATION_MENU "[[\"🟦 ON\", \"🟥 OFF\"]]"
 
 // Flags
 bool stopRiceCookerWhenHome = false;
@@ -24,19 +17,17 @@ unsigned long teaStartTime;
 String notifyChatID;
 
 int dark_mode = 0;
+bool autoWasOnBeforeDark = false;
 bool lastLampState[2] = {0, 0};
 
-// Checks for new messages every 1 second.
-int botRequestDelay = 100;
+// Minimum delay between Telegram polls (auto mode's channel dwell makes the
+// effective poll rate ~1s anyway)
+const unsigned long botRequestDelay = 100;
 unsigned long lastTimeBotRan;
-int relay_index = 0;
 
 // Handle what happens when you receive new messages
 void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_mode, Relay *relays)
 {
-    // Serial.print("Received: ");
-    // Serial.println(String(numNewMessages));
-
     for (int i = 0; i < numNewMessages; i++)
     {
         // Chat id of the requester
@@ -49,15 +40,22 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
 
         // Print the received message
         String text = bot->messages[i].text;
-        Serial.print("Received: \"");
-        Serial.print(text);
-        Serial.println("\"");
+        Serial.println("[Tlgm] Received: \"" + text + "\"");
 
         String from_name = bot->messages[i].from_name;
 
         if (text == "/start")
         {
-            String welcome = "Welcome, " + from_name + ".\n";
+            String welcome = "Welcome, " + from_name + ".\n\n";
+            welcome += "/status - relay states\n";
+            welcome += "/toggle_auto - presence-based auto mode\n";
+            welcome += "/toggle_cozy - warm light\n";
+            welcome += "/toggle_daylight - cold light\n";
+            welcome += "/toggle_dark - all lights off, restore on second use\n";
+            welcome += "/cook - cook rice (120 min)\n";
+            welcome += "/warm - warm up rice (30 min)\n";
+            welcome += "/tea - warm water for tea (10 min)\n";
+            welcome += "/cancel - cancel rice/tea timers\n";
             bot->sendMessage(chat_id, welcome, "");
         }
 
@@ -122,7 +120,7 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
                 {
                     riceCookerCookingMin = -1;
                     relays[3].turnOff();
-                    int warmUpDurationSec = (millis() - riceCookerStartTime) / 1000;
+                    unsigned long warmUpDurationSec = (millis() - riceCookerStartTime) / 1000;
                     String message = "Cancelled warming up rice after " + String(warmUpDurationSec / 60) + " minutes and " + String(warmUpDurationSec % 60) + " seconds.";
                     bot->sendMessage(chat_id, message, "");
                 }
@@ -130,7 +128,7 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
                 {
                     teaMin = -1;
                     relays[0].turnOff();
-                    int warmUpDurationSec = (millis() - riceCookerStartTime) / 1000;
+                    unsigned long warmUpDurationSec = (millis() - teaStartTime) / 1000;
                     String message = "Cancelled making tea after " + String(warmUpDurationSec / 60) + " minutes and " + String(warmUpDurationSec % 60) + " seconds.";
                     bot->sendMessage(chat_id, message, "");
                 }
@@ -151,10 +149,10 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
         {
             if (dark_mode == 0)
             {
-                if (*auto_mode == 1)
+                autoWasOnBeforeDark = (*auto_mode == 1);
+                if (autoWasOnBeforeDark)
                 {
-                    String message = "Turning OFF auto mode...";
-                    bot->sendMessage(chat_id, message, "");
+                    bot->sendMessage(chat_id, "Turning OFF auto mode...", "");
                     *auto_mode = 0;
                 }
 
@@ -165,15 +163,13 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
                 relays[1].turnOff();
                 relays[2].turnOff();
                 dark_mode = 1;
-                String message = "Time to immerse yourself!";
-                bot->sendMessage(chat_id, message, "");
+                bot->sendMessage(chat_id, "Time to immerse yourself!", "");
             }
             else
             {
-                if (*auto_mode == 0)
+                if (autoWasOnBeforeDark)
                 {
-                    String message = "Turning ON auto mode...";
-                    bot->sendMessage(chat_id, message, "");
+                    bot->sendMessage(chat_id, "Turning ON auto mode...", "");
                     *auto_mode = 1;
                 }
 
@@ -189,10 +185,10 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
                 }
 
                 dark_mode = 0;
-                String message = "Welcome back!";
-                bot->sendMessage(chat_id, message, "");
+                bot->sendMessage(chat_id, "Welcome back!", "");
             }
         }
+
         if (text == "/toggle_cozy")
         {
             String message;
@@ -208,6 +204,7 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
             }
             bot->sendMessage(chat_id, message, "");
         }
+
         if (text == "/toggle_daylight")
         {
             String message;
@@ -225,4 +222,5 @@ void handleNewMessages(UniversalTelegramBot *bot, int numNewMessages, int *auto_
         }
     }
 }
+
 #endif

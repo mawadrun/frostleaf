@@ -3,18 +3,21 @@
 
 class Relay
 {
+public:
+    Relay();
+    Relay(int pin, bool isActiveLow = false, bool isNormallyClosed = false);
+    void begin();
+    bool getState();
+    void turnOn();
+    void turnOff();
+
 protected:
     int pin;
     bool activeLow;
     bool normallyClosed;
 
-public:
-    Relay();
-    Relay(int pin, bool isActiveLow, bool isNormallyClosed);
-    bool getState();
-    void turnOn();
-    void turnOff();
-    void begin();
+private:
+    void writeState(bool on);
 };
 
 #endif
